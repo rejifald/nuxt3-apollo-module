@@ -4,6 +4,7 @@ import { ApolloClients } from '@vue/apollo-composable';
 import { setContext } from '@apollo/client/link/context';
 import { parse, serialize } from 'cookie-es';
 import apolloOptions from '#build/apollo.options.mjs';
+import defu from 'defu';
 
 const apolloModuleOptions = apolloOptions;
 const DEFAULT_CLIENT_ID = "default";
@@ -51,12 +52,12 @@ const plugin = defineNuxtPlugin((nuxt) => {
     const options = clientConfigs[clientId];
     const authLink = getAuthLink(clientId, options.authenticationType);
     const httpLink = createHttpLink(options);
-    const cache = new InMemoryCache();
+    const cache = new InMemoryCache(defu({}, options.cache));
     if (process.server) {
       const apolloClient = new ApolloClient(Object.assign(options, {
         ssrMode: true,
         link: concat(authLink, httpLink),
-        cache: new InMemoryCache()
+        cache: new InMemoryCache(defu({}, options.cache))
       }));
       nuxt.hook("app:rendered", () => {
         nuxt.payload.data["apollo-" + clientId] = apolloClient.extract();
