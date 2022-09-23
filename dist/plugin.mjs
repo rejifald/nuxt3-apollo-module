@@ -54,9 +54,10 @@ const plugin = defineNuxtPlugin((nuxt) => {
     const httpLink = createHttpLink(options);
     const cache = new InMemoryCache(defu({}, options.cache));
     if (process.server) {
-      const apolloClient = new ApolloClient(Object.assign(options, {
+      const ssrOptions = { ...options, uri: options.ssrUri || options.uri };
+      const apolloClient = new ApolloClient(Object.assign(ssrOptions, {
         ssrMode: true,
-        link: concat(authLink, httpLink),
+        link: concat(authLink, createHttpLink(ssrOptions)),
         cache: new InMemoryCache(defu({}, options.cache))
       }));
       nuxt.hook("app:rendered", () => {
